@@ -28,14 +28,8 @@ keywords:
     filters: ["World Model", "Video Model", "Video Action", "World Action", "VA", "WA", "WM"]
   "vlm":
     filters: ["Vision Language Model", "Spatial Reasoning", "Reward model"]
-  # "Robotic Navigation":
-  #   filters: ["Robot Navigation", "Vision-and-Language Navigation", "Vision Language Navigation", "Vision-Language-Navigation"]
-#   "DA & DG":
-#     filters: ["Domain Adaptation", "Unsupervised Domain Adaptation", "Source-free Domain Adaptation", "Test-time Domain Adaptation",
-#       "Domain Generalization", "Source-free Domain Generalization", "Test-time Domain Generalization"]
-#   "VLM":
-#     filters: ["Vision Language Model", "Vision Language Models", "Vision-Language Model", "Vision-Language Models"]
-#   "Prompt":
+  "Robot": 
+    filters: ["robot"]
 #     filters: ["Prompt Tuning", "Prompt Learning", "Prompt", "Prompts"]
 #   "Causal Learning":
 #     filters: ["Causal Inference", "Causal Model", "Causal Discovery", "Causal Reasoning"]
