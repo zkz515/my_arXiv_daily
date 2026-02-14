@@ -20,7 +20,7 @@ md_wechat_path: './docs/wechat.md'
 
 # keywords
 keywords:
-   "Robot & Agent":
+  "Robot & Agent":
     filters: ["Robot Learning", "Robot Policy", "Robot Policies", "Human-Robot", "Cross-Embodiment", "Robot Manipulation", "Robotic Manipulation"]
   "Vision Language Action Model":
     filters: ["Vision-Language-Action Model", "Vision Language Action Model", "VLA", "VLAs", "VLA Models"]
