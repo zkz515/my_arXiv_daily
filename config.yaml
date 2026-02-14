@@ -20,14 +20,14 @@ md_wechat_path: './docs/wechat.md'
 
 # keywords
 keywords:
-  "Robot & Agent":
-    filters: ["Embodied Agent", "Robot Learning", "Robot Policy", "Robot Policies", "Human-Robot", "Cross-Embodiment"]
-  "Robotic Manipulation":
-    filters: ["Robot Manipulation", "Robotic Manipulation", "Grasp"]
+   "Robot & Agent":
+    filters: ["Robot Learning", "Robot Policy", "Robot Policies", "Human-Robot", "Cross-Embodiment", "Robot Manipulation", "Robotic Manipulation"]
   "Vision Language Action Model":
     filters: ["Vision-Language-Action Model", "Vision Language Action Model", "VLA", "VLAs", "VLA Models"]
-  "Imitation Learning":
-    filters: ["Imitation Learning", "Behavior Cloning", "Behavioral Cloning"]
+  "World Model & World Action":
+    filters: ["World Model", "Video Model", "Video Action", "World Action", "VA", "WA", "WM"]
+  "vlm":
+    filters: ["Vision Language Model", "Spatial Reasoning", "Reward model"]
   # "Robotic Navigation":
   #   filters: ["Robot Navigation", "Vision-and-Language Navigation", "Vision Language Navigation", "Vision-Language-Navigation"]
 #   "DA & DG":
