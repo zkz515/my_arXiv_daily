@@ -28,8 +28,8 @@ keywords:
     filters: ["World Model", "Video Model", "Video Action", "World Action", "VA", "WA", "WM"]
   "vlm":
     filters: ["Vision Language Model", "Spatial Reasoning", "Reward model"]
-  "Robot": 
-    filters: ["robot"]
+#  "Robot": 
+#    filters: ["robot"]
 #     filters: ["Prompt Tuning", "Prompt Learning", "Prompt", "Prompts"]
 #   "Causal Learning":
 #     filters: ["Causal Inference", "Causal Model", "Causal Discovery", "Causal Reasoning"]
