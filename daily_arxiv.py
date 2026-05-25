@@ -180,18 +180,50 @@ def get_repo_from_hf(arxiv_id_no_ver: str) -> str | None:
         logging.error(f"HF repos error: {e}")
         return None
 
+# def _iter_arxiv_results(query: str, n: int):
+#     """
+#     封装 arxiv.Search().results()，遇到 UnexpectedEmptyPageError 降级到 ≤25 条再拉。
+#     """
+#     try:
+#         se = arxiv.Search(query=query, max_results=n, sort_by=arxiv.SortCriterion.SubmittedDate)
+#         for r in se.results():
+#             yield r
+#     except arxiv.UnexpectedEmptyPageError:
+#         logging.warning("Empty page from arXiv; retrying with fewer results (<=25)")
+#         se2 = arxiv.Search(query=query, max_results=min(n, 25), sort_by=arxiv.SortCriterion.SubmittedDate)
+#         for r in se2.results():
+#             yield r
 def _iter_arxiv_results(query: str, n: int):
     """
-    封装 arxiv.Search().results()，遇到 UnexpectedEmptyPageError 降级到 ≤25 条再拉。
+    封装新版 arxiv.Client().results(search)。
+    遇到 UnexpectedEmptyPageError 时降级到 ≤25 条再拉。
     """
+    client = arxiv.Client(
+        page_size=min(n, 100),
+        delay_seconds=3,
+        num_retries=3,
+    )
+
     try:
-        se = arxiv.Search(query=query, max_results=n, sort_by=arxiv.SortCriterion.SubmittedDate)
-        for r in se.results():
+        search = arxiv.Search(
+            query=query,
+            max_results=n,
+            sort_by=arxiv.SortCriterion.SubmittedDate,
+            sort_order=arxiv.SortOrder.Descending,
+        )
+        for r in client.results(search):
             yield r
+
     except arxiv.UnexpectedEmptyPageError:
         logging.warning("Empty page from arXiv; retrying with fewer results (<=25)")
-        se2 = arxiv.Search(query=query, max_results=min(n, 25), sort_by=arxiv.SortCriterion.SubmittedDate)
-        for r in se2.results():
+
+        search2 = arxiv.Search(
+            query=query,
+            max_results=min(n, 25),
+            sort_by=arxiv.SortCriterion.SubmittedDate,
+            sort_order=arxiv.SortOrder.Descending,
+        )
+        for r in client.results(search2):
             yield r
 
 def get_daily_papers(topic,query="slam", max_results=2):
