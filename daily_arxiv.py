@@ -9,6 +9,7 @@ import datetime
 import requests
 import subprocess
 import time
+import random
 
 logging.basicConfig(format='[%(asctime)s %(levelname)s] %(message)s',
                     datefmt='%m/%d/%Y %H:%M:%S',
@@ -193,38 +194,92 @@ def get_repo_from_hf(arxiv_id_no_ver: str) -> str | None:
 #         se2 = arxiv.Search(query=query, max_results=min(n, 25), sort_by=arxiv.SortCriterion.SubmittedDate)
 #         for r in se2.results():
 #             yield r
+# def _iter_arxiv_results(query: str, n: int):
+#     """
+#     封装新版 arxiv.Client().results(search)。
+#     遇到 UnexpectedEmptyPageError 时降级到 ≤25 条再拉。
+#     """
+#     client = arxiv.Client(
+#         page_size=min(n, 100),
+#         delay_seconds=3,
+#         num_retries=3,
+#     )
+
+#     try:
+#         search = arxiv.Search(
+#             query=query,
+#             max_results=n,
+#             sort_by=arxiv.SortCriterion.SubmittedDate,
+#             sort_order=arxiv.SortOrder.Descending,
+#         )
+#         for r in client.results(search):
+#             yield r
+
+#     except arxiv.UnexpectedEmptyPageError:
+#         logging.warning("Empty page from arXiv; retrying with fewer results (<=25)")
+
+#         search2 = arxiv.Search(
+#             query=query,
+#             max_results=min(n, 25),
+#             sort_by=arxiv.SortCriterion.SubmittedDate,
+#             sort_order=arxiv.SortOrder.Descending,
+#         )
+#         for r in client.results(search2):
+#             yield r
 def _iter_arxiv_results(query: str, n: int):
     """
     封装新版 arxiv.Client().results(search)。
-    遇到 UnexpectedEmptyPageError 时降级到 ≤25 条再拉。
+    处理 GitHub Action 上常见的 arXiv HTTP 429 限流问题：
+    - 降低 page_size
+    - 增大 delay_seconds
+    - 对 429 做指数退避
+    - 遇到空页时降级到 <=25 条
     """
     client = arxiv.Client(
-        page_size=min(n, 100),
-        delay_seconds=3,
+        page_size=min(n, 25),
+        delay_seconds=10,
         num_retries=3,
     )
 
-    try:
-        search = arxiv.Search(
+    def build_search(max_n: int):
+        return arxiv.Search(
             query=query,
-            max_results=n,
+            max_results=max_n,
             sort_by=arxiv.SortCriterion.SubmittedDate,
             sort_order=arxiv.SortOrder.Descending,
         )
-        for r in client.results(search):
-            yield r
 
-    except arxiv.UnexpectedEmptyPageError:
-        logging.warning("Empty page from arXiv; retrying with fewer results (<=25)")
+    search = build_search(n)
 
-        search2 = arxiv.Search(
-            query=query,
-            max_results=min(n, 25),
-            sort_by=arxiv.SortCriterion.SubmittedDate,
-            sort_order=arxiv.SortOrder.Descending,
-        )
-        for r in client.results(search2):
-            yield r
+    for attempt in range(6):
+        try:
+            for r in client.results(search):
+                yield r
+            return
+
+        except arxiv.UnexpectedEmptyPageError:
+            logging.warning("Empty page from arXiv; retrying with fewer results (<=25)")
+            search = build_search(min(n, 25))
+            continue
+
+        except arxiv.HTTPError as e:
+            msg = str(e)
+            if "429" in msg:
+                sleep_s = min(300, 30 * (2 ** attempt)) + random.uniform(0, 10)
+                logging.warning(
+                    f"arXiv HTTP 429 rate limited. "
+                    f"attempt={attempt + 1}/6, sleep={sleep_s:.1f}s, query={query}"
+                )
+                time.sleep(sleep_s)
+                continue
+            raise
+
+        except Exception as e:
+            logging.error(f"arXiv query failed: {e}, query={query}")
+            raise
+
+    logging.error(f"arXiv query failed after retries due to rate limit: {query}")
+    return
 
 def get_daily_papers(topic,query="slam", max_results=2):
     """
@@ -509,11 +564,26 @@ def demo(**config):
         logging.info(f"GET daily papers begin")
         for topic, keyword in keywords.items():
             logging.info(f"Keyword: {topic}")
-            data, data_web = get_daily_papers(topic, query = keyword,
-                                            max_results = max_results)
+        
+            sleep_s = random.uniform(5, 20)
+            logging.info(f"Sleep {sleep_s:.1f}s before querying arXiv")
+            time.sleep(sleep_s)
+        
+            data, data_web = get_daily_papers(
+                topic,
+                query=keyword,
+                max_results=max_results
+            )
             data_collector.append(data)
             data_collector_web.append(data_web)
             print("\n")
+        # for topic, keyword in keywords.items():
+        #     logging.info(f"Keyword: {topic}")
+        #     data, data_web = get_daily_papers(topic, query = keyword,
+        #                                     max_results = max_results)
+        #     data_collector.append(data)
+        #     data_collector_web.append(data_web)
+        #     print("\n")
         logging.info(f"GET daily papers end")
 
     # 1. update README.md file
